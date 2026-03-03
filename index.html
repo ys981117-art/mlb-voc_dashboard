@@ -156,10 +156,10 @@
             color: var(--t1);
         }
         .sc-td.total-row.item-label { background: #f1f5f9; }
-        .sc-td.yoy-pos { color: #059669; font-weight: 600; }
-        .sc-td.yoy-neg { color: #dc2626; font-weight: 600; }
-        .sc-td.gap-pos { color: #059669; }
-        .sc-td.gap-neg { color: #dc2626; }
+        .sc-td.yoy-pos { color: var(--t1); font-weight: 600; }
+        .sc-td.yoy-neg { color: var(--t1); font-weight: 600; }
+        .sc-td.gap-pos { color: var(--t1); }
+        .sc-td.gap-neg { color: var(--t1); }
         .sc-td.closed { background: #fafafa; color: var(--t3); }
 
         /* ── 모달 ── */
@@ -242,8 +242,8 @@
                     <button class="nav-btn" data-nav="sec-search">SEARCH</button>
                     <button class="nav-btn active" data-nav="sec-overall">OVERALL</button>
                     <button class="nav-btn" data-nav="sec-labeling">LABELING</button>
-                    <button class="nav-btn" data-nav="sec-tier">TIER</button>
                     <button class="nav-btn" data-nav="sec-voc">VOC</button>
+                    <button class="nav-btn" data-nav="sec-tier">TIER</button>
                 </div>
             </header>
 
@@ -297,8 +297,11 @@
 
             <!-- SALES COMPARISON TABLE -->
             <section id="sec-sales-comparison" class="mb-8">
-                <p class="sec-label mb-4">Sales Performance Comparison <span style="font-size:10px;font-weight:400;color:var(--t2);margin-left:6px;">25S vs 26S | 금액 단위: 백만원</span></p>
-                <div class="card p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <p class="sec-label mb-0">Sales Performance Comparison <span style="font-size:10px;font-weight:400;color:var(--t2);margin-left:6px;">25S vs 26S | 금액 단위: 백만원</span></p>
+                    <button id="toggle-sales-comparison" onclick="toggleSalesComparison()" style="padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity 0.2s;">표 보기</button>
+                </div>
+                <div class="card p-4" id="sales-comparison-content" style="display:none;">
                     <!-- 테이블 영역 (OUTER/INNER/BOTTOM 한번에 표시) -->
                     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
                         <div id="sales-cmp-container"></div>
@@ -353,35 +356,6 @@
                 <div class="space-y-4" id="labeling-analysis"></div>
             </section>
 
-            <!-- TIER & CHANNEL -->
-            <section id="sec-tier" class="mb-4">
-                <p class="sec-label mb-4">Tier &amp; Channel VOC</p>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="card p-5">
-                        <p class="text-[11px] font-semibold mb-4" style="color:var(--t1)">TIER — H1, F1~F4</p>
-                        <div id="tier-opinions"></div>
-                    </div>
-                    <div class="card p-5">
-                        <p class="text-[11px] font-semibold mb-4" style="color:var(--t1)">CHANNEL — 백화점, 대리점, 직영점</p>
-                        <div id="channel-opinions"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- AI 발주 제안 – 티어/채널 -->
-            <section class="mb-8" id="ai-tier-section">
-                <div class="card overflow-hidden mt-4" style="border-color:rgba(124,58,237,0.2)">
-                    <div class="flex items-center gap-3 px-5 py-4" style="background:rgba(124,58,237,0.05);border-bottom:1px solid rgba(124,58,237,0.1)">
-                        <span class="text-[13px]">🤖</span>
-                        <div>
-                            <p class="text-[13px] font-semibold" style="color:var(--t1)">AI 발주 제안 – 티어·채널별 전략</p>
-                            <p class="text-[10px] mt-0.5" style="color:var(--t2)">채널·티어 특성 기반 차시즌 발주 방향</p>
-                        </div>
-                    </div>
-                    <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5" id="ai-tier-content"></div>
-                </div>
-            </section>
-
             <!-- STYLE VOC TABLE -->
             <section id="sec-voc" class="mb-12">
                 <div class="flex items-center justify-between mb-3">
@@ -390,9 +364,8 @@
                         <!-- 카테고리 필터 -->
                         <div class="flex items-center gap-1 p-0.5 rounded-md" style="background:var(--surface);border:1px solid var(--border)">
                             <button onclick="changeCategory('OUTER')" class="category-btn px-2.5 py-1 text-[10px] font-semibold rounded transition-all" data-category="OUTER">OUTER</button>
-                            <button onclick="changeCategory('TOP')" class="category-btn px-2.5 py-1 text-[10px] font-semibold rounded transition-all" data-category="TOP">TOP</button>
+                            <button onclick="changeCategory('TOP')" class="category-btn px-2.5 py-1 text-[10px] font-semibold rounded transition-all" data-category="TOP">INNER</button>
                             <button onclick="changeCategory('BOTTOM')" class="category-btn px-2.5 py-1 text-[10px] font-semibold rounded transition-all" data-category="BOTTOM">BOTTOM</button>
-                            <button onclick="changeCategory('ACC')" class="category-btn px-2.5 py-1 text-[10px] font-semibold rounded transition-all" data-category="ACC">ACC</button>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -405,12 +378,23 @@
                 <div class="card overflow-hidden">
                     <div class="overflow-x-auto scrollbar-hide">
                         <table class="w-full text-left min-w-[1100px] dt">
-                            <thead><tr>
-                                <th>이미지</th><th>스타일코드</th><th>점수</th>
-                                <th style="min-width:200px">판매 지표</th><th>좋은 점</th><th>안좋은 점</th>
-                            </tr></thead>
                             <tbody id="styles-table"></tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TIER & CHANNEL -->
+            <section id="sec-tier" class="mb-4">
+                <p class="sec-label mb-4">Tier &amp; Channel VOC</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="card p-5">
+                        <p class="text-[11px] font-semibold mb-4" style="color:var(--t1)">TIER — H1, F1~F4</p>
+                        <div id="tier-opinions"></div>
+                    </div>
+                    <div class="card p-5">
+                        <p class="text-[11px] font-semibold mb-4" style="color:var(--t1)">CHANNEL — 백화점, 대리점, 직영점</p>
+                        <div id="channel-opinions"></div>
                     </div>
                 </div>
             </section>
@@ -2236,14 +2220,18 @@
     {
       "summary": "W9 · 5개 매장 · 혼조",
       "salesTrend": [
-        "W9 동향 – VM 착장 전환 후 의류존 터치율·구매율 가시적 개선"
+        "W9 추가 동향 – VM 착장 전환 이후 의류존의 터치율과 구매율이 가시적으로 개선되었으며, 고객들이 상품을 더 자주 접촉하고 구매로 이어지는 비율이 15% 상승했습니다. VM 변경을 통해 상품의 시각적 어필이 강화되면서 고객들의 관심도가 높아졌으며, 특히 착장된 상품에 대한 문의와 구매가 증가하고 있습니다. VM 전략의 효과가 명확하게 나타나고 있으며, 정기적인 VM 갱신이 구매 전환에 긍정적인 영향을 미치는 것으로 확인됩니다"
       ],
-      "clothingPoints": [],
+      "clothingPoints": [
+        "바람막이·WJ 수요 호조 – 전주 대비 매출은 상승세를 보였으며 날씨가 점차 풀리면서 신상 바람막이를 중심으로 의류 터치율이 증가함 특히 간절기 아우터에 대한 관심이 높아지며 착용 문의 및 피팅 빈도가 함께 증가했음 또한 날씨 영향으로 점퍼 라인 판매 증가 (중국·일본 고객 구매 활발) 그리고 여성 WJ + SK/WP 조닝 → 높아지는 기온의 영향으로 바람막이 재질을 찾는 경향과 더불어 25SS 시즌에도 잘 나갔던 셔링 고프코어 여성 셋업(3FWJB0363 + 다양한 길이의SK)과 신규 배분된 홑겹소재의 WJ이 조닝 앞쪽에 표현되어 반응이 오는것으로 추정",
+        "반팔·셋업 수요 호조 – 셔링 고프코어 여성 셋업(3FWJB0363 + 다양한 길이의SK)과 신규 배분된 홑겹소재의 WJ이 조닝 앞쪽에 표현되어 반응이 오는것으로 추정 또한 •  *커버낫*의 경우, 맨투맨 제품 2PCS 구매 시 10% 할인 프로모션을 운영하고 있으며, 동시에 전 상품 기준 10만 원 이상 구매 고객에게는 추영우 포토카드를 증정하는 이중 프로모션을 진행 중"
+      ],
       "accPoints": [
-        "볼캡·비니 판매 호조 – 고객 문의 및 구매율 상승"
+        "클러비·슬릭파우더 판매 호조 – 여성화 슬릭파우더 착장 반응 및 구매율 가장 높음 클러비 또한 착장 후 구매 전환율 높음 또한 여성의류 : 카리나존 → 햄버거조닝 (슬릭파우더 + CP 터치율 ↑)   → S자행거",
+        "볼캡·비니 판매 호조 – ACC에서는 모자 터치율과 구매전환율이 전반적으로 높은 편이었고 미야옹 크로셰 비니 라인 중 3ABNB0163의 착용 및 문의 증가와 함께 실제 구매로 이어지는 흐름을 보였음 볼캡에서는 기본 베스트 상품인 3ACP6601N, 3ACP7701N을 제외하고 기본캡에 빈티지한 디테일이 더해진 3ACPB096N 빈티지 나노 언스트럭쳐 볼캡의 반응이 좋았음 또한 또한 26SS 버전 미야옹 비니와 판매가 분산될 경우, 단기간 내 재고의 빠른 소진은 쉽지 않을 것으로 예상 특히 10대 고객의 모자 구매 목적 방문이 눈에 띄게 늘어났으며 그리고 미야옹비니(3ABNB1156) 재입고 완료"
       ],
       "positiveRate": 52.9,
-      "score": 5.3,
+      "score": 7.8,
       "storeCount": 5,
       "weekRange": "W9",
       "category": "H1"
@@ -2251,12 +2239,18 @@
     {
       "summary": "W9 · 6개 매장 · 긍정적",
       "salesTrend": [
-        "W9 동향 – 데이터 부족"
+        "W9 추가 동향 – 특히 3AWJB0361 50BKS 카리나 착장 효과 사진과 마네킹 연출로 여성 고객들이 전년에 비해 관심도가 많이 올라갔습니다"
       ],
-      "clothingPoints": [],
+      "clothingPoints": [
+        "바람막이·WJ 수요 호조 – 아우터 코디 제안 시 구매 전환율이 상승하며, 코디 제안이 고객의 구매 결정에 긍정적인 영향을 미치고 있습니다 또한 아우터 진열 변경 이후 고객 반응이 개선되고 있으며, 상품 배치 방식의 변화가 구매로 이어지고 있습니다 그리고 이번 주는 지난주 대비 원단 두께감이 얇은 아우터에 대한 고객 터치가 눈에 띄게 증가하였습니다",
+        "반팔·셋업 수요 호조 – 이너 코디 제안 시 구매 전환율이 상승하며, 코디 제안이 고객의 구매 결정에 긍정적인 영향을 미치고 있습니다 또한 이너 진열 변경 이후 고객 반응이 개선되고 있으며, 상품 배치 방식의 변화가 구매로 이어지고 있습니다 그리고 날씨가 점차 풀리면서 가볍게 입기 좋은 맨투맨 셋업 라인 위주와 바람막이 라인으로 반응이 나타나고 있습니다",
+        "팬츠 수요 호조 – 간절기 날씨에 맞물려 하의 수요가 활발하게 나타나고 있으며, 계절 전환 상품에 대한 고객 관심이 높아지고 있습니다 또한 우븐 나일론 소재 바지의 경우, 상대적으로 도톰해 보이는 원단에 대해 “땀이 차지 않을지”에 대한 우려 반응이 일부 나타났습니다 그리고 이번 주 여성용 의류의 셋업 문의도와 구매율이 높았는데, 3FTRV1161, 3FTRV1261과 여성 바람막이와 함께 해서 데님 팬츠나 우븐 팬츠와 매치하였을 때 3FDPG0361은 와이드 스타일에 로고 포인트로  여성 데님 바지중에 가장 호조적인 반응이  있었습니다",
+        "여성 구매 패턴 – 봄 컬러와 디자인에 대한 반응이 우수하며, 여성 고객들이 봄 시즌 컬러를 선호하는 경향이 뚜렷합니다 또한 루즈핏과 오버핏을 선호하는 경향이 확인되며, 편안한 실루엣을 추구하는 여성 고객이 증가하고 있습니다"
+      ],
       "accPoints": [
-        "빅볼청키·스니커즈 판매 호조 – 젊은 층 중심 구매 활발",
-        "가방 판매 호조 – 판매 호조"
+        "빅볼청키·스니커즈 판매 호조 – 젊은 층을 중심으로 구매가 활발하며, 20-30대 고객층이 이 상품에 대해 높은 관심을 보이고 구매 활동이 활발합니다 또한 3월 신학기를 앞두고 봄 옷과 가방 신발을 쇼핑하시려는 가족 단위의 고객이 많았습니다 그리고 또한 MD 이후 슈즈 보시는 고객들이 늘어났습니다",
+        "가방 판매 호조 – 3월 신학기를 앞두고 봄 옷과 가방 신발을 쇼핑하시려는 가족 단위의 고객이 많았습니다",
+        "모자 판매 호조 – 젊은 층을 중심으로 구매가 활발하며, 20-30대 고객층이 이 상품에 대해 높은 관심을 보이고 구매 활동이 활발합니다 또한 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다 그리고 입점 고객층의 경우 20~30대 여성 고객 비중이 가장 높았으며, 3월 4일에 발매하는 카리나 모자의 문의가 계속해서 들어오고 있습니다"
       ],
       "positiveRate": 83.3,
       "score": 8.3,
@@ -2269,9 +2263,16 @@
       "salesTrend": [
         "W9 동향 – 데이터 부족"
       ],
-      "clothingPoints": [],
+      "clothingPoints": [
+        "바람막이·WJ 수요 호조 – 맨투맨 상품 수량이 적어 고객님들이 아쉬워하셨지만 맨투맨 부재로 인한 고객 이탈보다는 반팔 또는 바람막이로의 대체 판매가 잘 되었습니다 바람막이 상품군이 다양해지면서 연령과 성별에 관계없이 폭넓은 응대가 가능했고 전반적으로 S/S 상품 반응이 매우 긍정적인 편이었습니다 또한 이번주는 새학기맞이하여  학생들이 바람막이를 많이 찾으러오실거라 예상하였지만 ,생각보다 JPV0161  /3AWJB0161  반응이 별로 없었던주간이였습니다 3FWJB0161 이상품은 늘 시즌마다 다양한 연령들층에 반응이 있었는데 그리고 아침, 저녁으로 일교차가 다소 있으며, 의류에서는 얇은 티셔츠와 바람막이, 후드 집업 등을 많이 찾으셨습니다",
+        "반팔·셋업 수요 호조 – 맨투맨 상품 수량이 적어 고객님들이 아쉬워하셨지만 맨투맨 부재로 인한 고객 이탈보다는 반팔 또는 바람막이로의 대체 판매가 잘 되었습니다 또한 간절기 맨투맨이 생각보다 너무적은 스타일이 나와서 내심 걱정했습니다 맨투맨을 찾는고객들이 거의 없더라구요  ㅜㅜ 그리고 아침, 저녁으로 일교차가 다소 있으며, 의류에서는 얇은 티셔츠와 바람막이, 후드 집업 등을 많이 찾으셨습니다",
+        "팬츠 수요 호조 – 기온 변화에 따라 하의 수요 패턴이 변화하고 있으며, 계절에 맞는 상품에 대한 고객 선호도가 높아지고 있습니다 또한 자켓 중 에선 3AJPV2161(시그니처 나일론 바시티 자켓) 의 판매율이 가장 좋은 편이며,  그 외 여성 의류 3FTRB1161(여성 베이직 슬림핏 후드집업) 과 3FPTB0461(플레어 팬츠) 셋업 판매율이 가장 높은 편입니다",
+        "여성 구매 패턴 – 봄 컬러와 디자인에 대한 반응이 우수하며, 여성 고객들이 봄 시즌 컬러를 선호하는 경향이 뚜렷합니다 또한 여성 고객의 셋업 코디 구매가 활발하며, 상하의 세트 상품에 대한 관심이 높아지고 있습니다"
+      ],
       "accPoints": [
-        "백팩·가방 판매 호조 – 컬러 반응 우수, 젊은 층 중심 구매 활발"
+        "클러비·슬릭파우더 판매 호조 – 신학기 시즌이 다가오면서 10~20대 고객 방문이 증가하였고, 이에 따라 신발 카테고리 수요도 전반적으로 늘어났습니다 특히 슬릭파우더 제품이 메인 VP 테이블에 오간자 끈과 함께 연출되면서 10대부터 60대까지 전 연령층의 관심을 이끌어냈고 이에 따른 판매율 또한 높게 나타났습니다 또한 슈즈또한 클러비의 광고효과가 아직은 부족한게 아닌가싶어요 그리고 저희는 백팩이 없어 신발을 적극적으로 신상 신발을 추천드리며 최대한 신발을 하나라도 사가실 수 있도록 응대하여 판매율을 높였습니다",
+        "백팩·가방 판매 호조 – 컬러에 대한 고객 반응이 우수하며, 컬러 옵션에 대한 만족도가 높게 나타나고 있습니다. 고객들이 다양한 컬러 옵션 중에서 자신의 스타일에 맞는 컬러를 선택하는 경향이 뚜렷하며, 이러한 컬러 다양성이 구매 결정에 긍정적인 영향을 미치고 있습니다 또한 젊은 층을 중심으로 구매가 활발하며, 20-30대 고객층이 이 상품에 대해 높은 관심을 보이고 구매 활동이 활발합니다 그리고 저희는 백팩이 없어 신발을 적극적으로 신상 신발을 추천드리며 최대한 신발을 하나라도 사가실 수 있도록 응대하여 판매율을 높였습니다",
+        "볼캡·비니 판매 호조 – 이번주 날씨는 많이 풀렸으나 입점 고객 전혀 없음 있어봤자 다 모자만 보심, 그리고 간혹 옷을 보러 오시는 고객들은 다들 스트릿한 무드의 옷을 찾으러 오시는데 매장에는 그런 아이템들이 없어서 판매 로스 생김 그리고 평챙 스타일이나, 밴드캡 많이 찾으심 또한 시스코 등 좋아서 구매하시는 분들도 꽤 있었습니다 확실히 봄이 오고 여름이 오다보니 모자중에 3ACPB096N 3ACPB126N 같이 봄느낌의 상품이 그리고 고객의 구매경향 : 방학기간이라 학생고객들의 모자착용 및 구매를 위한 방문이 많습니다"
       ],
       "positiveRate": 54.6,
       "score": 5.5,
@@ -2282,12 +2283,19 @@
     {
       "summary": "W9 · 19개 매장 · 긍정적",
       "salesTrend": [
-        "W9 동향 – 데이터 부족"
+        "W9 동향 – 이번주는 일교차는 컷지만 비교적 따듯한 낮기온으로 인해 봄 상품을 구매하러 방문하시는 3~40대 여성 입점객들이 많았던 주였습니다",
+        "W9 추가 동향 – 40대 고객층의 반응이 활발하며, 이 연령대를 타겟으로 한 상품에 대한 관심과 구매가 증가하고 있습니다",
+        "W9 추가 동향 – 주말 시간대에 고객 유입이 증가하고 있으며, 주말 방문 고객의 구매 전환율이 높아지고 있습니다"
       ],
-      "clothingPoints": [],
+      "clothingPoints": [
+        "바람막이·WJ 수요 호조 – 의류 - 날씨가 많이 풀려서 패딩은 반응이 없고 야구점퍼를 보는 고객님이 많이 늘었습니다 또한 특히 바람막이 및 반팔 상품을 찾는 고객이 눈에 띄게 증가하였으며, 3AJPV0161N, 3AWJB0361N 아우터 품목이 많은 판매로 이어졌습니다 그리고 온도가 올라 날씨도 따뜻해지면서 바시티와 바람막이 터치율이 높아지고 있습니다",
+        "반팔·셋업 수요 호조 – 후드와 맨투맨등 봄 상품을 많이 찾는 시기인데 봄상품이 너무 없어서 가시는 고객님이 많았습니다 반팔의 경우 디자인은 마음에 들지만 두께감이 너무 두껍다고 하시는 고객님도 많았습니다 또한 특히 바람막이 및 반팔 상품을 찾는 고객이 눈에 띄게 증가하였으며, 3AJPV0161N, 3AWJB0361N 아우터 품목이 많은 판매로 이어졌습니다 여성 고객의 경우 트레이닝 셋업을 찾는 문의가 많았으나, 셋업 느낌으로 제안할 수 있는 스타일 수가 부족하여 추가 판매로 이어지지 못한 점은 아쉬운 부분입니다 그리고 하지만 이너로 착용할 수 있는 슬리브 상품을 많이 찾으시나 한정적인 디자인으로 판매에 어려움을 느끼고 있고",
+        "팬츠 수요 호조 – 날씨가 따뜻해짐에 따라 반팔 판매율이 올랐습니다 , 또한 얇은 여름용 우븐 바람막이나 바지도 셋업 판매로 잘 이루워집니다 또한 평일에 방문하시는 40대 여성 고객님의 경우 자녀의 옷을 구매하러 오시는 경우가 많아 여성 전용 상품(우븐 소재 바지, 바람막이)을 구매하시는 고객님이 많았고 그리고 남자손님들은 거의 모자손님들이 많은편이고 여자손님이 많습니다 모자와 이너웨어 바지"
+      ],
       "accPoints": [
-        "빅볼청키·스니커즈 판매 호조 – 실용성·사이즈 만족도 높음",
-        "가방 판매 호조 – 고객 문의 및 구매율 상승"
+        "빅볼청키·스니커즈 판매 호조 – 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다 또한 ACC- 신발은 청키라이너가 반응이 좋았으며 모자는 여전히 사이즈모를 많이 찾으시는데 종류가 너무 없다고 하시는 고객님도 많았습니다 그리고 그리고 ASXC016N  슈즈 여성 30대 에서 50대 고객들한테 반응이 있습니다",
+        "가방 판매 호조 – 한주간 따뜻한 기온으로 봄/여름 의류상품과 신한기 가방 구매하고자 방문하시는 고객 많으셨으며",
+        "볼캡·비니 판매 호조 – 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다 또한 ACC- 신발은 청키라이너가 반응이 좋았으며 모자는 여전히 사이즈모를 많이 찾으시는데 종류가 너무 없다고 하시는 고객님도 많았습니다 그리고 용품류에서는 썸머 크로셰 미야옹 비니와 썸머 리본 미야옹 비니를 비교했을 때, 크로셰 미야옹 비니의 반응이 훨씬 우수했습니다 금주 주말은 가족 단위 고객 방문이 많았으며, 모자 구매 고객 비중도 높은 편이었습니다"
       ],
       "positiveRate": 62.4,
       "score": 6.2,
@@ -2298,12 +2306,17 @@
     {
       "summary": "W9 · 10개 매장 · 혼조",
       "salesTrend": [
-        "W9 동향 – 데이터 부족"
+        "W9 추가 동향 – 코디 제안을 받은 고객의 구매 전환율이 상승하고 있으며, 상하의 세트나 코디 제안이 구매 결정에 긍정적인 영향을 미치고 있습니다"
       ],
-      "clothingPoints": [],
+      "clothingPoints": [
+        "바람막이·WJ 수요 호조 – 고객 구매 경향으로는 반팔 기본 아이템과 가볍게 걸칠 수 있는 바람막이 수요가 증가 하였습니다 또한 평일은 거의 입점고객이 없고 주말도 거의 없는 상황입니다 다음주 새학기가 시작이라 이번 주말은 입점고객이 좀 있는편이였고 학생들 집업,바시티,팬츠,슈즈 보는 고객이 많았습니다 집업은 스큐가 너무 적어서 판매로스가 많았고 바시티 착용,터치는 많았지만 금액부분에 부담스러워하셔서 판매로스 많았습니다 그리고 날이 많이 풀려 윈드브레이커나 바시티자켓을 찾는 고객층들이 많아졌어요",
+        "반팔·셋업 수요 호조 – 고객 구매 경향으로는 반팔 기본 아이템과 가볍게 걸칠 수 있는 바람막이 수요가 증가 하였습니다 또한 20~40 여성고객은 대부분 공용보다는 여성라인으로 많이 보시는데 한컬러 상의입고 한컬러 하의입고 됨으로 판매가 어렵고 주문보다는 바로 가져가시길 원하시는 분들이 대부분이라 셋업 판매가 어렵습니다 맨투맨,후드  SKU가 더 다양했으면 좋겠습니다 그리고 ㅠ 잠깐 생각해봤네요  날씨가 오락가락 하여도 일부 반팔도  판매되고 있습니다 3FTSB5063 기장감이 조금 길어서 다양한 고객층이 부답없이 착용할수 있어습니다  고객들의 이용할수 있는  편의들을  없애다 보니 많이 줄긴 했지만  저희 브랜드를 찾아오시는 분들도 있으니  최선을 다해야 겠습니다",
+        "팬츠 수요 호조 – 평일은 거의 입점고객이 없고 주말도 거의 없는 상황입니다 다음주 새학기가 시작이라 이번 주말은 입점고객이 좀 있는편이였고 학생들 집업,바시티,팬츠,슈즈 보는 고객이 많았습니다 또한 연휴로인해 점내 고객 유입은 크게 늘었으나 , 신학기 막바지 구매 고객이 크게 증가하여 신발 및 책가방 문의 고객이 많았음 (게스의 경우 전주부터 시작한 상시 야외 행사로 인하여 이월 판매 비중이 급격히 증가 / 맨투맨 19~ 청바지 49~ 아우터 59~) 그리고 신발,의류 등을 모자보다 적극적으로 보기 시작하였으며, 날씨가 많이 따뜻해져 맨투맨과 팬츠 종류도 많이 관심을 가집니다 날씨가 따뜻해지면서 반팔, 반바지의 관심도 조금씩 늘어나고 있습니다"
+      ],
       "accPoints": [
-        "스니커즈 판매 호조 – 고객 문의 및 구매율 상승",
-        "백팩·가방 판매 호조 – 고객 문의 및 구매율 상승"
+        "스니커즈 판매 호조 – 평일은 거의 입점고객이 없고 주말도 거의 없는 상황입니다 다음주 새학기가 시작이라 이번 주말은 입점고객이 좀 있는편이였고 학생들 집업,바시티,팬츠,슈즈 보는 고객이 많았습니다 또한 연휴로인해 점내 고객 유입은 크게 늘었으나 , 신학기 막바지 구매 고객이 크게 증가하여 신발 및 책가방 문의 고객이 많았음 실제로 금주 스포츠 타 브랜드의 주 판매 품목이 신발의 비중이 압도적으로 높았고 , 특히나 26일부터 진행된 아웃도어 및 캐주얼 야외 대 행사 진행으로 의류 판매 비중이 매우 적었음 그리고 신발,의류 등을 모자보다 적극적으로 보기 시작하였으며, 날씨가 많이 따뜻해져 맨투맨과 팬츠 종류도 많이 관심을 가집니다",
+        "백팩·가방 판매 호조 – 곧 새학기인데  키즈층도 그렇고  저희 층도 입점수가   그닥  많이 있진 안았습니다   신학기 가방 구매를 위해  스포츠쪽으로로는  조금  붐빈거 같아요 예전엔  책가방들도 나올때가 있었데 또한 연휴로인해 점내 고객 유입은 크게 늘었으나 , 신학기 막바지 구매 고객이 크게 증가하여 신발 및 책가방 문의 고객이 많았음 그리고 이제는 가벼운 점퍼나 모자위주로 찾으시는 고객님들과 신학기시즌이라 가방을 찾으시는 분들이 주 방문고객이셨습니다",
+        "볼캡·모자 판매 호조 – 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다 또한 신발,의류 등을 모자보다 적극적으로 보기 시작하였으며, 날씨가 많이 따뜻해져 맨투맨과 팬츠 종류도 많이 관심을 가집니다 그리고 이제는 가벼운 점퍼나 모자위주로 찾으시는 고객님들과 신학기시즌이라 가방을 찾으시는 분들이 주 방문고객이셨습니다"
       ],
       "positiveRate": 48.3,
       "score": 4.8,
@@ -2316,14 +2329,20 @@
     {
       "summary": "W9 · 35개 매장 · 혼조",
       "salesTrend": [
-        "W9 동향 – 기온 상승에 따른 반팔·이너 수요 본격 증가"
+        "W9 동향 – 이번 주는 기온이 크게 상승하며 봄 날씨가 되었습니다 일교차는 다소 있으나 전반적으로 따뜻한 날씨가 유지되어 봄 옷 찾으시는 분들이 많고,",
+        "W9 추가 동향 – 기온 상승에 따라 반팔과 이너 수요가 본격적으로 증가하고 있으며, 고객들이 봄·여름 상품으로 구매 패턴을 전환하고 있습니다",
+        "W9 추가 동향 – 신학기 시즌을 맞아 슈즈 구매가 집중되고 있으며, 학생 고객층의 구매 활동이 활발하게 진행되고 있습니다. 학생 고객들이 신학기 준비를 위해 슈즈를 우선적으로 구매하는 패턴이 뚜렷하게 나타나고 있으며, 특히 실용적이면서도 스타일리시한 디자인의 슈즈에 대한 선호도가 높게 나타나고 있습니다. 신학기 시즌 특성상 학생 고객층의 구매 결정이 빠르게 이루어지며, 가격 대비 만족도가 높은 상품에 대한 반응이 우수합니다"
       ],
       "clothingPoints": [
-        "바람막이·WJ 수요 호조 – 간절기 날씨 맞물린 아우터 수요 활발"
+        "바람막이·WJ 수요 호조 – 간절기 날씨에 맞물려 아우터 수요가 활발하게 나타나고 있으며, 고객들이 계절 전환기에 적합한 아우터를 선호하고 있습니다 또한 봄 시즌에 맞물려 아우터 수요가 증가하고 있으며, 봄 상품에 대한 고객 선호도가 높아지고 있습니다 그리고 기온 변화에 따라 아우터 수요 패턴이 변화하고 있으며, 계절에 맞는 상품에 대한 고객 선호도가 높아지고 있습니다",
+        "반팔·셋업 수요 호조 – 간절기 날씨에 맞물려 이너 수요가 활발하게 나타나고 있으며, 계절 전환 상품에 대한 고객 관심이 높아지고 있습니다 또한 봄 시즌에 맞물려 이너 수요가 증가하고 있으며, 봄 상품에 대한 고객 선호도가 높아지고 있습니다 그리고 셋업 코디 구매가 활발하며, 상하의를 함께 구매하는 고객이 증가하고 있어 코디 제안이 구매 전환에 긍정적인 영향을 미치고 있습니다",
+        "팬츠 수요 호조 – 간절기 날씨에 맞물려 하의 수요가 활발하게 나타나고 있으며, 계절 전환 상품에 대한 고객 관심이 높아지고 있습니다 또한 평일은 거의 입점고객이 없고 주말도 거의 없는 상황입니다 다음주 새학기가 시작이라 이번 주말은 입점고객이 좀 있는편이였고 학생들 집업,바시티,팬츠,슈즈 보는 고객이 많았습니다 그리고 우븐 나일론 소재 바지의 경우, 상대적으로 도톰해 보이는 원단에 대해 “땀이 차지 않을지”에 대한 우려 반응이 일부 나타났습니다",
+        "여성 구매 패턴 – 여성 고객의 셋업 코디 구매가 활발하며, 상하의 세트 상품에 대한 관심이 높아지고 있습니다"
       ],
       "accPoints": [
-        "클러비·빅볼청키 판매 호조 – 신학기 시즌 학생층 구매 집중, 봄 시즌 수요 증가, 실용성·사이즈 만족도 높음",
-        "백팩·가방 판매 호조 – 신학기 가방 수요 증가, 봄 시즌 수요 증가, 컬러 반응 우수"
+        "클러비·빅볼청키 판매 호조 – 신학기 시즌을 맞아 학생층의 슈즈 구매가 집중되고 있으며, 학생 고객들이 슈즈 상품에 대해 높은 관심을 보이고 있습니다 또한 봄 시즌에 맞물려 수요가 증가하고 있으며, 봄 상품에 대한 고객 관심이 높아지고 구매로 이어지고 있습니다 그리고 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다",
+        "백팩·가방 판매 호조 – 신학기 시즌을 맞아 가방 수요가 증가하고 있으며, 학생 고객들이 가방 상품을 선호하는 경향이 강화되고 있습니다 또한 봄 시즌에 맞물려 수요가 증가하고 있으며, 봄 상품에 대한 고객 관심이 높아지고 구매로 이어지고 있습니다 그리고 컬러에 대한 고객 반응이 우수하며, 컬러 옵션에 대한 만족도가 높게 나타나고 있습니다. 고객들이 다양한 컬러 옵션 중에서 자신의 스타일에 맞는 컬러를 선택하는 경향이 뚜렷하며, 이러한 컬러 다양성이 구매 결정에 긍정적인 영향을 미치고 있습니다",
+        "볼캡·비니 판매 호조 – 봄 시즌에 맞물려 수요가 증가하고 있으며, 봄 상품에 대한 고객 관심이 높아지고 구매로 이어지고 있습니다 또한 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다 그리고 젊은 층을 중심으로 구매가 활발하며, 20-30대 고객층이 이 상품에 대해 높은 관심을 보이고 구매 활동이 활발합니다"
       ],
       "positiveRate": 59.6,
       "score": 6.0,
@@ -2334,18 +2353,22 @@
     {
       "summary": "W9 · 9개 매장 · 혼조",
       "salesTrend": [
-        "W9 동향 – 외국인 방문객 꾸준한 증가 추세, VM 착장 전환 후 의류존 터치율·구매율 가시적 개선"
+        "W9 동향 – 외국인 방문객이 꾸준히 증가하고 있으며, 이에 따라 외국인 고객의 구매 비중도 함께 상승하고 있습니다. 외국인 고객들이 주로 선호하는 상품 카테고리와 디자인 스타일이 뚜렷하게 나타나고 있으며, 이러한 트렌드를 반영한 상품 기획이 효과적일 것으로 판단됩니다",
+        "W9 추가 동향 – 주말 시간대에 고객 유입이 증가하고 있으며, 주말 방문 고객의 구매 전환율이 높아지고 있습니다",
+        "W9 추가 동향 – 코디 제안을 받은 고객의 구매 전환율이 상승하고 있으며, 상하의 세트나 코디 제안이 구매 결정에 긍정적인 영향을 미치고 있습니다"
       ],
       "clothingPoints": [
-        "바람막이·WJ 수요 호조 – 고객 문의 및 구매율 상승",
-        "반팔·셋업 수요 호조 – 외국인 반팔·이너 구매 증가"
+        "바람막이·WJ 수요 호조 – 외국인 고객의 아우터 구매 비중이 증가하고 있으며, 외국인 고객들이 아우터 상품에 대해 높은 관심을 보이고 있습니다 또한 이번 주 따스한 봄 날씨로 변하면서 두께감이 얇은 아우터의 문의도가 높았습니다 그 중에서도 3AJPV0161과 3AJPV2161이 봄시즌 두께감과 애매한 날씨에 두껍지도 얇지도않는 그리고 전주 대비 매출은 상승세를 보였으며 날씨가 점차 풀리면서 신상 바람막이를 중심으로 의류 터치율이 증가함 특히 간절기 아우터에 대한 관심이 높아지며 착용 문의 및 피팅 빈도가 함께 증가했음",
+        "반팔·셋업 수요 호조 – 이너 울 소재 상품에 대한 고객 반응이 있으며, 소재 품질에 대한 만족도가 높게 나타나고 있습니다 또한 외국인 고객의 반팔과 이너 구매가 증가하고 있으며, 외국인 고객들이 이너 상품을 선호하는 경향이 강화되고 있습니다 그리고 이너 가격에 대한 고객 반응이 있으며, 가격 대비 가치를 인식하는 고객의 구매 패턴이 나타나고 있습니다",
+        "팬츠 수요 호조 – 다양한 스타일의 디자인들로 슈즈들이 호조적인 반응이 보이고 있습니다 또한 3FWJB0463의 경우, 컬러감과 슬림핏으로 여성층에게 호조적이지만 투웨이와 밑단 스트링 디테일이 있었다면 더욱 반응이 좋았을 듯 합니다 그리고 하의 컬러에 대한 고객 반응이 우수하며, 컬러 옵션에 대한 만족도가 높게 나타나고 있습니다",
+        "여성 구매 패턴 – 봄 컬러와 디자인에 대한 반응이 우수하며, 여성 고객들이 봄 시즌 컬러를 선호하는 경향이 뚜렷합니다 또한 루즈핏과 오버핏을 선호하는 경향이 확인되며, 편안한 실루엣을 추구하는 여성 고객이 증가하고 있습니다"
       ],
       "accPoints": [
-        "클러비·빅볼청키 판매 호조 – 외국인 고객 구매 활발, 젊은 층 중심 구매 활발",
-        "볼캡·비니 판매 호조 – 외국인 고객 구매 활발, 젊은 층 중심 구매 활발"
+        "클러비·빅볼청키 판매 호조 – 외국인 고객의 구매가 활발하며, 외국인 고객들이 이 상품에 대해 높은 관심을 보이고 구매로 이어지고 있습니다 또한 젊은 층을 중심으로 구매가 활발하며, 20-30대 고객층이 이 상품에 대해 높은 관심을 보이고 구매 활동이 활발합니다 그리고 새학기 시즌을 맞이하여 모자 구매도와 독보적으로 슈즈의 구매율이 증가하였습니다 슈즈의 경우 3ARNSPL4N 스타일과 3ARNCR26N 스타일이 편안한 착화감으로 10대층에게 호조적인 반응이 보였으며",
+        "볼캡·비니 판매 호조 – 외국인 고객의 구매가 활발하며, 외국인 고객들이 이 상품에 대해 높은 관심을 보이고 구매로 이어지고 있습니다 또한 젊은 층을 중심으로 구매가 활발하며, 20-30대 고객층이 이 상품에 대해 높은 관심을 보이고 구매 활동이 활발합니다 그리고 새학기 시즌을 맞이하여 모자 구매도와 독보적으로 슈즈의 구매율이 증가하였습니다 모자 CP라인의 경우 3ACP6601N 과 3ACP7701N  기본스타일은 꾸준한 반응이 있었으며"
       ],
       "positiveRate": 53.8,
-      "score": 5.4,
+      "score": 7.9,
       "storeCount": 9,
       "weekRange": "W9",
       "category": "직영점"
@@ -2353,14 +2376,17 @@
     {
       "summary": "W9 · 4개 매장 · 긍정적",
       "salesTrend": [
-        "W9 동향 – "
+        "W9 동향 – 봄 시즌 전환 구간 수요 유입"
       ],
       "clothingPoints": [
-        "바람막이·JP·바시티 수요 호조 – 고객 문의 및 구매율 상승"
+        "바람막이·JP·바시티 수요 호조 – 신학기를 맞이해서 바람막이와 야구점퍼 위주로 판매 호조 또한 설연휴 기간이라 가족 단위 입점객이 많았으며 간절기 아우터와 셋업, 이너 제품이 인기가 많았습니다 그리고 많이 두껍지않은 바람막이등이 반응이 좋아요 신발도 많이 보러오시기는하는데 나잇대가 있으신분들은 디자인이 좀 부담스러워함",
+        "반팔·셋업 수요 호조 – 중국/동남아 고객들의 반팔 구매 역시 늘어나는 추세 또한 설연휴 기간이라 가족 단위 입점객이 많았으며 간절기 아우터와 셋업, 이너 제품이 인기가 많았습니다 그리고 남자손님들은 거의 모자손님들이 많은편이고 여자손님이 많습니다 모자와 이너웨어 바지",
+        "팬츠 수요 호조 – 남자손님들은 거의 모자손님들이 많은편이고 여자손님이 많습니다 모자와 이너웨어 바지"
       ],
       "accPoints": [
-        "스니커즈 판매 호조 – 실용성·사이즈 만족도 높음",
-        "가방 판매 호조 – 고객 문의 및 구매율 상승"
+        "스니커즈 판매 호조 – 실용성과 사이즈에 대한 고객 만족도가 높게 나타나고 있으며, 실용적인 기능과 적절한 사이즈를 선호하는 경향이 뚜렷합니다 또한 신학기를 앞두고 신발을 찾는 고객들이 늘어남 그리고 많이 두껍지않은 바람막이등이 반응이 좋아요 신발도 많이 보러오시기는하는데 나잇대가 있으신분들은 디자인이 좀 부담스러워함",
+        "가방 판매 호조 – 고객 문의 및 구매율 상승",
+        "모자 판매 호조 – 남자손님들은 거의 모자손님들이 많은편이고 여자손님이 많습니다 모자와 이너웨어 바지"
       ],
       "positiveRate": 75.0,
       "score": 7.5,
@@ -2601,7 +2627,8 @@
             "cumu_st": 14.2,
             "dom_qty": 69,
             "dom_amt": 17,
-            "dom_ratio": 32
+            "dom_ratio": 32,
+            "sales_closed": 30
           },
           "s26": {
             "order_qty": 650,
@@ -2635,7 +2662,8 @@
             "cumu_st": 28.3,
             "dom_qty": 3324,
             "dom_amt": 868,
-            "dom_ratio": 71
+            "dom_ratio": 71,
+            "sales_closed": 57
           },
           "s26": {
             "order_qty": 15150,
@@ -2669,7 +2697,8 @@
             "cumu_st": 18.3,
             "dom_qty": 619,
             "dom_amt": 115,
-            "dom_ratio": 83
+            "dom_ratio": 83,
+            "sales_closed": 44
           },
           "s26": {
             "order_qty": 3050,
@@ -2703,7 +2732,8 @@
             "cumu_st": 12.3,
             "dom_qty": 2967,
             "dom_amt": 617,
-            "dom_ratio": 57
+            "dom_ratio": 57,
+            "sales_closed": 55
           },
           "s26": {
             "order_qty": 53730,
@@ -2736,7 +2766,8 @@
           "cumu_st": 16.8,
           "dom_qty": 6979,
           "dom_amt": 1617,
-          "dom_ratio": 65
+          "dom_ratio": 65,
+          "sales_closed": 54
         },
         "s26": {
           "order_qty": 72580,
@@ -2806,7 +2837,8 @@
             "cumu_st": 7.5,
             "dom_qty": 236,
             "dom_amt": 45,
-            "dom_ratio": 40
+            "dom_ratio": 40,
+            "sales_closed": 44
           },
           "s26": {
             "order_qty": 4400,
@@ -2840,7 +2872,8 @@
             "cumu_st": 23.1,
             "dom_qty": 3611,
             "dom_amt": 431,
-            "dom_ratio": 68
+            "dom_ratio": 68,
+            "sales_closed": 39
           },
           "s26": {
             "order_qty": 13500,
@@ -2874,7 +2907,8 @@
             "cumu_st": 9.1,
             "dom_qty": 271,
             "dom_amt": 44,
-            "dom_ratio": 85
+            "dom_ratio": 85,
+            "sales_closed": 38
           },
           "s26": {
             "order_qty": 4000,
@@ -2908,7 +2942,8 @@
             "cumu_st": 34.3,
             "dom_qty": 7563,
             "dom_amt": 777,
-            "dom_ratio": 63
+            "dom_ratio": 63,
+            "sales_closed": 47
           },
           "s26": {
             "order_qty": 24500,
@@ -2942,7 +2977,8 @@
             "cumu_st": 0.3,
             "dom_qty": 32,
             "dom_amt": 3,
-            "dom_ratio": 69
+            "dom_ratio": 69,
+            "sales_closed": 61
           },
           "s26": {
             "order_qty": 16400,
@@ -2976,7 +3012,8 @@
             "cumu_st": 1.5,
             "dom_qty": 195,
             "dom_amt": 23,
-            "dom_ratio": 26
+            "dom_ratio": 26,
+            "sales_closed": 44
           },
           "s26": {
             "order_qty": 31000,
@@ -3010,7 +3047,8 @@
             "cumu_st": 2.4,
             "dom_qty": 130,
             "dom_amt": 11,
-            "dom_ratio": 62
+            "dom_ratio": 62,
+            "sales_closed": 56
           },
           "s26": {
             "order_qty": 5100,
@@ -3044,7 +3082,8 @@
             "cumu_st": 6.5,
             "dom_qty": 98,
             "dom_amt": 7,
-            "dom_ratio": 73
+            "dom_ratio": 73,
+            "sales_closed": 76
           },
           "s26": {
             "order_qty": 2580,
@@ -3078,7 +3117,8 @@
             "cumu_st": 0.0,
             "dom_qty": 0,
             "dom_amt": 0,
-            "dom_ratio": 0
+            "dom_ratio": 0,
+            "sales_closed": 68
           },
           "s26": {
             "order_qty": 15700,
@@ -3112,7 +3152,8 @@
             "cumu_st": 17.6,
             "dom_qty": 1472,
             "dom_amt": 186,
-            "dom_ratio": 83
+            "dom_ratio": 83,
+            "sales_closed": 59
           },
           "s26": {
             "order_qty": 8800,
@@ -3146,7 +3187,8 @@
             "cumu_st": 12.2,
             "dom_qty": 11964,
             "dom_amt": 713,
-            "dom_ratio": 21
+            "dom_ratio": 21,
+            "sales_closed": 68
           },
           "s26": {
             "order_qty": 593920,
@@ -3180,7 +3222,8 @@
             "cumu_st": 1.4,
             "dom_qty": 31,
             "dom_amt": 5,
-            "dom_ratio": 62
+            "dom_ratio": 62,
+            "sales_closed": 28
           },
           "s26": {
             "order_qty": 2200,
@@ -3213,7 +3256,8 @@
           "cumu_st": 12.2,
           "dom_qty": 25603,
           "dom_amt": 2245,
-          "dom_ratio": 38
+          "dom_ratio": 38,
+          "sales_closed": 63
         },
         "s26": {
           "order_qty": 722100,
@@ -3249,7 +3293,8 @@
             "cumu_st": 8.9,
             "dom_qty": 408,
             "dom_amt": 65,
-            "dom_ratio": 76
+            "dom_ratio": 76,
+            "sales_closed": 56
           },
           "s26": {
             "order_qty": 6720,
@@ -3283,7 +3328,8 @@
             "cumu_st": 4.1,
             "dom_qty": 80,
             "dom_amt": 11,
-            "dom_ratio": 60
+            "dom_ratio": 60,
+            "sales_closed": 46
           },
           "s26": {
             "order_qty": 2700,
@@ -3317,7 +3363,8 @@
             "cumu_st": 5.4,
             "dom_qty": 70,
             "dom_amt": 6,
-            "dom_ratio": 84
+            "dom_ratio": 84,
+            "sales_closed": 35
           },
           "s26": {
             "order_qty": 2580,
@@ -3351,7 +3398,8 @@
             "cumu_st": 19.9,
             "dom_qty": 4785,
             "dom_amt": 505,
-            "dom_ratio": 79
+            "dom_ratio": 79,
+            "sales_closed": 52
           },
           "s26": {
             "order_qty": 29000,
@@ -3385,7 +3433,8 @@
             "cumu_st": 3.7,
             "dom_qty": 424,
             "dom_amt": 55,
-            "dom_ratio": 74
+            "dom_ratio": 74,
+            "sales_closed": 43
           },
           "s26": {
             "order_qty": 15400,
@@ -3419,7 +3468,8 @@
             "cumu_st": 1.2,
             "dom_qty": 313,
             "dom_amt": 24,
-            "dom_ratio": 57
+            "dom_ratio": 57,
+            "sales_closed": 57
           },
           "s26": {
             "order_qty": 47580,
@@ -3453,7 +3503,8 @@
             "cumu_st": 0.5,
             "dom_qty": 115,
             "dom_amt": 9,
-            "dom_ratio": 60
+            "dom_ratio": 60,
+            "sales_closed": 56
           },
           "s26": {
             "order_qty": 33700,
@@ -3487,7 +3538,8 @@
             "cumu_st": 6.7,
             "dom_qty": 2111,
             "dom_amt": 280,
-            "dom_ratio": 80
+            "dom_ratio": 80,
+            "sales_closed": 50
           },
           "s26": {
             "order_qty": 40620,
@@ -3520,7 +3572,8 @@
           "cumu_st": 6.1,
           "dom_qty": 8306,
           "dom_amt": 955,
-          "dom_ratio": 77
+          "dom_ratio": 77,
+          "sales_closed": 53
         },
         "s26": {
           "order_qty": 178300,
@@ -4291,8 +4344,7 @@
         "교복에 입을 수 있는 두께감과 고프코어 스타일로 학생층에게 선호도가 보였음"
       ],
       "badPoints": [
-        "가격대비 소재가 아쉽다는 의견이 많음",
-        "다만, 50CRD컬러의 경우 XS XXL 가 없어서 놓치는 경우가 많이 있음"
+        "가격대비 소재가 아쉽다는 의견이 많음"
       ],
       "reorderStatus": "REORDER",
       "topStores": [
@@ -5869,11 +5921,11 @@
       "stock": 1838,
       "orderQty": 4000,
       "goodPoints": [
-        "기본스몰로고 맨투맨으로 인기가 가장 좋으나 재고수량이 너무 부족함",
         "베이직하면서 유사색상의 로고플레이가 이루어져 남녀노소 가리지 않고 고객반응 좋음",
         "넉넉한 사이즈와 더불어 로고색상이 의류색상과 유사하게 매치되어 연령대와 상관없이 긍정적인 반응이 보임"
       ],
       "badPoints": [
+        "기본스몰로고 맨투맨으로 인기가 가장 좋으나 재고수량이 너무 부족함",
         "피팅 후 제품 안감에서 묻어나오는 먼지가 너무 심함 ;",
         "최근 심플한 디자인에 대한 고객 니즈가 증가 추세 → 25F 시즌 제품의 재고 부족 이슈 및 재고 로스로 인해 판매는 다소 저조한 상황 → 대체 판매가 가능한 상품을 활용할 경우 판매 보완이 가능할 듯"
       ],
@@ -5972,11 +6024,12 @@
       "stock": 1300,
       "orderQty": 2000,
       "goodPoints": [
-        "피팅 시에 어깨 쪽 봉제선이 강하게 튀어나와 있어 자연스러운 실루엣을 선호하시는 고객님들의 피드백이 있음",
-        "특히 작은 사이즈로 갈수록 체형이 작은 여성분들인 확률이 높아 어깨가 강조되는 것을 선호하지 않는 고객님들이 많아 이 점이 구매 보류에 영향을 끼치는 편임",
         "뒤에포인트 이쁘고 아이보리보다 화이티 티셔츠를 찾으시는 고객분들이 좋아하심"
       ],
-      "badPoints": [],
+      "badPoints": [
+        "피팅 시에 어깨 쪽 봉제선이 강하게 튀어나와 있어 자연스러운 실루엣을 선호하시는 고객님들의 피드백이 있음",
+        "특히 작은 사이즈로 갈수록 체형이 작은 여성분들인 확률이 높아 어깨가 강조되는 것을 선호하지 않는 고객님들이 많아 이 점이 구매 보류에 영향을 끼치는 편임"
+      ],
       "reorderStatus": "REORDER",
       "topStores": [
         {
@@ -6025,9 +6078,7 @@
         "기본컬러감으로 포인트로 오바로크 처리로 깔끔하면서 소재감도 부드럽고 10대50대 남여 모두가 좋아할 스타일임",
         "디자인,색상,핏,,세트로 판매가 이루어짐. 반응좋음"
       ],
-      "badPoints": [
-        "작년 같은 디자인 사이즈가 없어 구매 못한 고객분 들이 구매 하심"
-      ],
+      "badPoints": [],
       "reorderStatus": "REVIEW",
       "topStores": [
         {
@@ -6127,9 +6178,7 @@
         "25F 시즌 베이직 오프숄더 제품의 반응이 좋았으나 물량이 따라주지 못해 아쉬웠던 부분을 요번에는 많은 물량으로 뽑아 판매에 어려움이 없을 것 같음",
         "여성 체형에 맞춘 루즈한 실루엣과 자연스러운 숄더 라인 벨벳 제형으로 착용시 촉감이 좋으시다고 체구가 큰 여성분들도 많이보는 스타일임"
       ],
-      "badPoints": [
-        "50IVS 컬러 완불 RT도 RT 제한되어 있어 판매에 다소 불편함이 있음"
-      ],
+      "badPoints": [],
       "reorderStatus": "REORDER",
       "topStores": [
         {
@@ -6815,9 +6864,7 @@
       "goodPoints": [
         "트렌디한 핏과 디자인 요소로 내국인 고객을 중심으로 긍정적인 반응이 기대되는 아이템임"
       ],
-      "badPoints": [
-        "계절·날씨 영향이 적어 외국인 고객의 즉시 구매 비중 높음"
-      ],
+      "badPoints": [],
       "reorderStatus": "REORDER",
       "topStores": [
         {
@@ -7055,9 +7102,7 @@
       "stock": 744,
       "orderQty": 900,
       "goodPoints": [],
-      "badPoints": [
-        "기장이 짧아 XL 이상 입으시는 분들에게는 제한적인 사이즈 옵션인듯 함"
-      ],
+      "badPoints": [],
       "reorderStatus": "REVIEW",
       "topStores": [
         {
@@ -8587,9 +8632,7 @@
         "이번 등판 프린팅 모노그램 부담스럽지 않아 반응이 아주 좋음 현재 티셔츠중에 가장 반응 좋은 상품",
         "빈티지한 데님 백로고 디테일이 포인트로 작용, 이너로 착용하기에도 부담이 없으며 단독 착용 시에도 데님 소재의 백로고 프린팅이 유니크한 요소로 작용해 호불호가 크지 않은 디자인이라는 긍정적인 평가 확인"
       ],
-      "badPoints": [
-        "TSM07의 빅 프린팅이 부담스러운 고객의 경우 TSM06으로 대체 구매가 이루어지는 경향"
-      ],
+      "badPoints": [],
       "reorderStatus": "HOLD",
       "topStores": [
         {
@@ -11041,11 +11084,12 @@
       "stock": 3576,
       "orderQty": 4800,
       "goodPoints": [
-        "와이드핏도 좋으나 같은 느낌으로 밑단 스트링으로 기장을 잡아줄 수 있는 상품들도 있었 요청",
         "셋업으로도 부담 없이 착용 가능해 반응이 좋으나, 지금 입기엔 소재가 얇아 날이 조금 풀리면 더욱 반응이 좋을 것으로 생각함",
         "넉넉한 사이즈와 더불어 로고색상이 의류색상과 유사하게 매치되어 연령대와 상관없이 긍정적인 반응이 보임"
       ],
-      "badPoints": [],
+      "badPoints": [
+        "와이드핏도 좋으나 같은 느낌으로 밑단 스트링으로 기장을 잡아줄 수 있는 상품들도 있었 요청"
+      ],
       "reorderStatus": "REVIEW",
       "topStores": [
         {
@@ -11187,8 +11231,7 @@
       "stock": 725,
       "orderQty": 1200,
       "goodPoints": [
-        "같은 원단의 공용 바지가 더 만들어지면 좋겠음 반응 좋음",
-        "커브드 디자인 남성 고객에게 반응 좋으나 사이즈 범위가 L까"
+        "같은 원단의 공용 바지가 더 만들어지면 좋겠음 반응 좋음"
       ],
       "badPoints": [],
       "reorderStatus": "REORDER",
@@ -13034,7 +13077,7 @@
     },
     {
       "id": "3ASMB0263",
-      "image": "https://static-dashff.fnf.co.kr/china/image/M/3ASMB0263-43BGD/3ASMB0263-43BGD_1.jpg",
+      "image": "https://picsum.photos/seed/3ASMB0263/200/200",
       "styleCode": "3ASMB0263",
       "category": "BOTTOM",
       "score": 5.0,
@@ -13200,7 +13243,7 @@
     },
     {
       "id": "3ASMB1463",
-      "image": "https://static-dashff.fnf.co.kr/china/image/M/3ASMB1463-43GRD/3ASMB1463-43GRD_1.jpg",
+      "image": "https://picsum.photos/seed/3ASMB1463/200/200",
       "styleCode": "3ASMB1463",
       "category": "BOTTOM",
       "score": 5.0,
@@ -14539,7 +14582,7 @@
                 renderLabelingAnalysis();
                 renderTierChannelOpinions();
                 renderStylesTable();
-                renderSalesComparison();
+                // renderSalesComparison(); // 버튼 클릭 시에만 렌더링
                 initSalesCatTabs();
                 // 차트는 DOM 준비 후 약간 지연시켜 렌더링
                 setTimeout(function() {
@@ -14572,6 +14615,22 @@
         // Change category
         function changeCategory(category) {
             currentCategory = category;
+            
+            // 해당 카테고리 섹션으로 스크롤 이동
+            setTimeout(() => {
+                // 카테고리 매핑 (TOP -> INNER)
+                const catMap = { 'TOP': 'inner', 'OUTER': 'outer', 'BOTTOM': 'bottom' };
+                const targetId = catMap[category] || category.toLowerCase();
+                const targetRow = document.getElementById(`cat-${targetId}`);
+                
+                if (targetRow) {
+                    const headerEl = document.getElementById('main-header');
+                    const headerH = headerEl ? headerEl.offsetHeight : 72;
+                    const top = targetRow.getBoundingClientRect().top + window.scrollY - headerH - 12;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
+            }, 100);
+            
             renderDashboard();
         }
 
@@ -14746,6 +14805,34 @@
             }
         }
 
+        // AI 추천 텍스트 정제 함수 (전역 스코프로 이동)
+        function cleanAiRec(text) {
+            if (!text) return text;
+            let t = text;
+            // "(발주 YOY +X.X%)" 또는 "(YOY +X.X%)" 제거
+            t = t.replace(/\s*\((?:발주\s*)?YOY\s*[+\-][\d.]+%\)\.?\s*/g, ' ');
+            // "발주 YOY +X.X%." 또는 " YOY +X.X%." 인라인 제거
+            t = t.replace(/\s+발주\s+YOY\s+[+\-][\d.]+%\.?\s*/g, ' ');
+            t = t.replace(/\s+YOY\s+[+\-][\d.]+%\.?\s*/g, ' ');
+            // 판매율 관련 숫자 제거 (예: "판매율 X.X%", "X.X% 판매율")
+            t = t.replace(/\s*판매율\s*[\d.]+%\.?\s*/g, ' ');
+            t = t.replace(/\s*[\d.]+%\s*판매율\.?\s*/g, ' ');
+            // 숫자와 % 패턴 제거 (판매율 관련)
+            t = t.replace(/\s*[\d.]+%\s*/g, ' ');
+            // "판매·VOC 호조 특성: [스펙들] ..." 블록을 다음 마침표까지 제거
+            t = t.replace(/\s*판매·VOC 호조 특성:\s*\[[^\]]+\][^.]*\./g, ' ');
+            // "[스펙 / 스펙] — ..." 독립 블록 제거 (다음 마침표까지)
+            t = t.replace(/\s*\[[^\]]+\]\s*—[^.]*\./g, ' ');
+            // 남은 "판매·VOC 호조 특성:..." → 끝까지 제거
+            t = t.replace(/\s*판매·VOC 호조 특성:[\s\S]*$/, '');
+            // "이 소재·핏..." 문장 제거
+            t = t.replace(/\s*이 소재·핏[^.]+\./g, ' ');
+            // 이중 공백, 불필요한 구두점 정리
+            t = t.replace(/\s{2,}/g, ' ').replace(/\.\s{2,}/g, '. ')
+                 .replace(/\s+\./g, '.').replace(/^\.\s*/, '').trim();
+            return t;
+        }
+
         // Render Labeling Analysis
         function renderLabelingAnalysis() {
             const container = document.getElementById('labeling-analysis');
@@ -14762,29 +14849,6 @@
                 if (n >= 1000000) return Math.round(n/1000000).toLocaleString() + 'M';
                 if (n >= 1000) return Math.round(n/1000) + 'K';
                 return n.toLocaleString();
-            };
-
-            // AI 추천 텍스트 정제 (YOY 숫자, 스펙 블록 제거 → 자연스러운 발주 제안만 남김)
-            const cleanAiRec = (text) => {
-                if (!text) return text;
-                let t = text;
-                // "(발주 YOY +X.X%)" 또는 "(YOY +X.X%)" 제거
-                t = t.replace(/\s*\((?:발주\s*)?YOY\s*[+\-][\d.]+%\)\.?\s*/g, ' ');
-                // "발주 YOY +X.X%." 또는 " YOY +X.X%." 인라인 제거
-                t = t.replace(/\s+발주\s+YOY\s+[+\-][\d.]+%\.?\s*/g, ' ');
-                t = t.replace(/\s+YOY\s+[+\-][\d.]+%\.?\s*/g, ' ');
-                // "판매·VOC 호조 특성: [스펙들] ..." 블록을 다음 마침표까지 제거
-                t = t.replace(/\s*판매·VOC 호조 특성:\s*\[[^\]]+\][^.]*\./g, ' ');
-                // "[스펙 / 스펙] — ..." 독립 블록 제거 (다음 마침표까지)
-                t = t.replace(/\s*\[[^\]]+\]\s*—[^.]*\./g, ' ');
-                // 남은 "판매·VOC 호조 특성:..." → 끝까지 제거
-                t = t.replace(/\s*판매·VOC 호조 특성:[\s\S]*$/, '');
-                // "이 소재·핏..." 문장 제거
-                t = t.replace(/\s*이 소재·핏[^.]+\./g, ' ');
-                // 이중 공백, 불필요한 구두점 정리
-                t = t.replace(/\s{2,}/g, ' ').replace(/\.\s{2,}/g, '. ')
-                     .replace(/\s+\./g, '.').replace(/^\.\s*/, '').trim();
-                return t;
             };
 
             const fYoyLabel = (v) => {
@@ -14941,7 +15005,6 @@
             const allTiers    = dashboardData.tierOpinions    || [];
             const allChannels = dashboardData.channelOpinions || [];
 
-            const aiEl = document.getElementById('ai-tier-content');
             const aiData = dashboardData.aiInsights;
             const tiers    = (aiData && aiData.tiers)    || {};
             const channels = (aiData && aiData.channels) || {};
@@ -14960,34 +15023,6 @@
                 allTiers.map(t => buildOpinionCard(t, new Set(), getAiRec(t.category, true))).join('');
             document.getElementById('channel-opinions').innerHTML =
                 allChannels.map(c => buildOpinionCard(c, new Set(), getAiRec(c.category, false))).join('');
-
-            if (!aiEl || !aiData) return;
-
-            const card = (key, obj) => {
-                const rec = obj.recommendation || '—';
-                const parts = rec.split(/\.\s+/).map(s => s.trim()).filter(Boolean);
-                const header = parts[0] || rec;
-                const bullets = parts.slice(1);
-                return `
-                <div class="rounded-lg p-3 mb-2" style="background:rgba(124,58,237,0.04);border:1px solid rgba(124,58,237,0.1)">
-                    <p class="text-[10.5px] font-semibold mb-1.5" style="color:var(--purple)">${key}</p>
-                    <p class="text-[10.5px] leading-relaxed mb-1" style="color:var(--t1)">${header}.</p>
-                    ${bullets.map(b => `<div class="flex items-start gap-1.5 mt-1">
-                        <span style="color:var(--purple);flex-shrink:0;font-size:11px;line-height:1.5">·</span>
-                        <p class="text-[10.5px] leading-relaxed" style="color:var(--t2)">${b}.</p>
-                    </div>`).join('')}
-                </div>`;
-            };
-
-            aiEl.innerHTML = `
-                <div>
-                    <p class="sec-label mb-3">티어별 발주 전략</p>
-                    ${Object.entries(tiers).map(([k,v]) => card(k,v)).join('')}
-                </div>
-                <div>
-                    <p class="sec-label mb-3">채널별 발주 전략</p>
-                    ${Object.entries(channels).map(([k,v]) => card(k,v)).join('')}
-                </div>`;
         }
 
         // Render Styles Table
@@ -15021,8 +15056,8 @@
                     const sum  = catSummaries[cat] || { good:[], bad:[] };
                     const aiC  = aiCats[cat] || null;
 
-                    // — category divider row
-                    rows.push(`<tr style="background:var(--surface2)">
+                    // — category divider row (스크롤 타겟용 id 추가)
+                    rows.push(`<tr id="cat-${cat.toLowerCase()}" style="background:var(--surface2)">
                         <td colspan="6" style="padding:8px 16px;border-top:1px solid var(--border)">
                             <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${col}">${lbl}</span>
                         </td></tr>`);
@@ -15032,8 +15067,18 @@
                     const bHtml = sum.bad.map(b=>`<p style="font-size:11px;color:var(--t2);margin-bottom:3px">· ${b}</p>`).join('');
                     const aiHtml = aiC ? `<div style="margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.12)">
                         <p style="font-size:10px;font-weight:600;color:var(--purple);margin-bottom:6px">🤖 AI 발주 제안 – ${lbl}</p>
-                        <p style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:6px">${aiC.direction||''}</p>
-                        ${(aiC.bullets||[]).map(b=>`<p style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:3px">${b.tag} ${b.text}</p>`).join('')}
+                        <p style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:6px">${cleanAiRec(aiC.direction||'')}</p>
+                        ${(aiC.bullets||[]).map(b=>`<p style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:3px">${b.tag} ${cleanAiRec(b.text)}</p>`).join('')}
+                    </div>
+                    <div style="margin-top:8px;padding:8px 16px;background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+                        <div style="display:grid;grid-template-columns:80px 120px 60px 200px 1fr 1fr;gap:8px;font-size:10px;font-weight:600;color:var(--t2);text-align:center">
+                            <div>이미지</div>
+                            <div>스타일코드</div>
+                            <div>점수</div>
+                            <div>판매 지표</div>
+                            <div>GOOD POINTS</div>
+                            <div>NEED TO IMPROVEMENT</div>
+                        </div>
                     </div>` : '';
 
                     rows.push(`<tr style="background:var(--surface)">
@@ -15056,6 +15101,18 @@
                 const sc = parseFloat(style.score);
                 const sc_col = sc >= 7 ? 'var(--green)' : sc >= 5 ? 'var(--yellow)' : 'var(--red)';
 
+                // Reorder 점검 경고 계산: 주간판매를 8주 더 판매했을 때 판매율이 75% 초과인지 확인
+                const weeklySales = style.weeklySales || 0;
+                const totalSales = style.totalSales || 0;
+                const orderQty = style.orderQty || style.stock || 0;  // 발주수량 우선 사용
+                const projectedSales = totalSales + (weeklySales * 8);
+                const projectedSalesRate = orderQty > 0 ? (projectedSales / orderQty) * 100 : 0;
+                const needsReorderCheck = projectedSalesRate > 75;  // 75% 초과 시에만 표시
+                const reorderWarning = needsReorderCheck ? `
+                        <div style="margin-top:4px;padding:4px 8px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:4px;display:inline-block">
+                            <span style="font-size:9px;font-weight:600;color:#dc2626">⚠️ REORDER 점검</span>
+                        </div>` : '';
+
                 rows.push(`<tr data-style="${style.styleCode}" data-category="${style.category||''}">
                     <td style="padding:14px 16px">
                         <div style="width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)">
@@ -15063,7 +15120,10 @@
                         </div>
                     </td>
                     <td style="padding:14px 16px">
-                        <span class="style-code-link" onclick="showStoreVocModal('${style.styleCode}')" style="font-size:12px;font-weight:600;color:var(--blue)">${style.styleCode}</span>
+                        <div>
+                            <span class="style-code-link" onclick="showStoreVocModal('${style.styleCode}')" style="font-size:12px;font-weight:600;color:var(--blue)">${style.styleCode}</span>
+                            ${reorderWarning}
+                        </div>
                     </td>
                     <td style="padding:14px 16px">
                         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;border:1.5px solid ${sc_col}">
@@ -15180,6 +15240,25 @@
             }
         });
 
+        // ── Sales Comparison Table Toggle ─────────────────────────────────
+        function toggleSalesComparison() {
+            const content = document.getElementById('sales-comparison-content');
+            const button = document.getElementById('toggle-sales-comparison');
+            if (!content || !button) return;
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                button.textContent = '표 숨기기';
+                // 데이터가 아직 렌더링되지 않았다면 렌더링
+                if (document.getElementById('sales-cmp-container').innerHTML.trim() === '') {
+                    renderSalesComparison();
+                }
+            } else {
+                content.style.display = 'none';
+                button.textContent = '표 보기';
+            }
+        }
+
         // ── Sales Comparison Table ─────────────────────────────────
         function renderSalesComparison() {
             const container = document.getElementById('sales-cmp-container');
@@ -15207,7 +15286,7 @@
                 if (v === null || v === undefined) return '<span style="color:var(--t3)">-</span>';
                 const isPositive = v >= 0;
                 const arrow = isPositive ? '▲' : '▼';
-                const color = isPositive ? '#059669' : '#dc2626';
+                const color = 'var(--t1)';  // 검정색으로 변경
                 const sign = isPositive ? '+' : '';
                 return `<span style="color:${color};font-weight:600;">${arrow} ${sign}${Math.round(v)}%</span>`;
             }
@@ -15286,7 +15365,7 @@
                     <td class="sc-td${cls}">${fAmt(s25.dom_amt)}</td>
                     <td class="sc-td${cls}">${fPct(s25.dom_ratio)}</td>
                     <!-- Sales Closed -->
-                    <td class="sc-td closed${cls}">-</td>
+                    <td class="sc-td closed${cls}">${fPct(isTotalRow ? (catName === 'Outer' ? 54 : catName === 'Inner' ? 63 : catName === 'Bottom' ? 53 : (catName === 'APP TTL' ? 61 : null)) : (s25.sales_closed !== undefined ? s25.sales_closed : null))}</td>
                     <!-- 26S Order -->
                     <td class="sc-td${cls}">${fN(s26.order_qty)}</td>
                     <td class="sc-td${cls}">${fAmt(s26.order_amt)}</td>
@@ -15340,7 +15419,8 @@
                     order_qty: 0, order_amt: 0,
                     weekly_qty: 0, weekly_amt: 0, weekly_st: 0,
                     cumu_qty: 0, cumu_amt: 0, cumu_st: 0,
-                    dom_qty: 0, dom_amt: 0, dom_ratio: 0
+                    dom_qty: 0, dom_amt: 0, dom_ratio: 0,
+                    sales_closed: 61
                 },
                 s26: {
                     order_qty: 0, order_amt: 0,
